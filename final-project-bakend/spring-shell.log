@@ -1,0 +1,29 @@
+1695524990148:findAllBooks
+1695525014466:find-all-books
+1695525076611:help
+1695525091392:stacktrace
+1695525464747:find-all-books
+1695525483086:save-book
+1695525510129:save-book abc wolber 2023
+1695525519152:find-all-books
+1731792472110:help
+1731792497535:save-book "The Idiot" "Dostoyevsky" 1923
+1731792515125:find-all-books
+1731963285884:save-book "The Idiot" "Dostoyevsky" 1923
+1731963774639:findAllBooks
+1731963777107:findAllBooks()
+1731963790828:find-all-books
+1731963839892:./mvnw -DskipTests package appengine:deploy
+1731963845722:/mvnw -DskipTests package appengine:deploy
+1731963852896:mvnw -DskipTests package appengine:deploy
+1731963964277:./mvnw -DskipTests package appengine:deploy
+1731963969862:/mvnw -DskipTests package appengine:deploy
+1731964128793:./mvnw -DskipTests package appengine:deploy
+1731964135384:/mvnw -DskipTests package appengine:deploy
+1731964157383:./mvn -DskipTests package appengine:deploy
+1731964253959:./mvnw -DskipTests package appengine:deploy
+1731964263445:gcloud deploy
+1731966728890:save-book "History of Japan" "Jamieston" 2002
+1731969104141:save-book "History of China" "John" 2022
+1732494110465:./mvnw spring-boot:run
+1732494140207:stacktrace
