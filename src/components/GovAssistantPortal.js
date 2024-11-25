@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, MessageSquare, Plus, User } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Alert, AlertTitle, AlertDescription, AlertFooter } from '../components/ui/alert';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../components/ui/alert-dialog';
 
 const GovAssistantPortal = () => {
   // State Management
@@ -14,6 +16,8 @@ const GovAssistantPortal = () => {
   const [assistantChats, setAssistantChats] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showAlert, setShowAlert] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const API_BASE_URL = 'http://localhost:8082'; // DEBUG ONLY
 
   // Initialize clock
@@ -21,6 +25,22 @@ const GovAssistantPortal = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Cyber Pop Up
+  const handleComplete = () => {
+    // Save to localStorage or your state management system
+    localStorage.setItem('securityTrainingCompleted', new Date().toISOString());
+    setShowAlert(false);
+  };
+
+  const handlePostpone = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmPostpone = () => {
+    setShowConfirmDialog(false);
+    setShowAlert(false);
+  };
 
   // Initialize user session
   useEffect(() => {
@@ -156,6 +176,8 @@ const GovAssistantPortal = () => {
       }
     };
 
+    if (!showAlert) return null;
+
     return (
       <div className="flex flex-col h-[600px]">
         <div className="flex-grow overflow-y-auto bg-[#fffff0] border-2 border-gray-400 p-4">
@@ -252,6 +274,63 @@ const GovAssistantPortal = () => {
 
   return (
     <div className="min-h-screen bg-[#fffff0]">
+      {/* Security Training Confirmation Modal */}
+      <>
+      <Alert variant="warning">
+        <AlertTitle>SYSTEM SECURITY NOTICE</AlertTitle>
+        <AlertDescription>
+          <div className="space-y-2">
+            <p>TO ALL DEPARTMENT DIRECTIVE 2024-07:</p>
+            <p>ALL USERS MUST VERIFY COMPLETION OF ANNUAL CYBERSECURITY TRAINING BEFORE ACCESSING THIS SYSTEM.</p>
+          </div>
+        </AlertDescription>
+        <AlertFooter onComplete={handleComplete} onPostpone={handlePostpone} />
+      </Alert>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="border-4 border-red-700 bg-[#fffff0] font-['Courier_New'] max-w-[500px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center bg-red-700 text-white p-2 font-bold">
+              ⚠ WARNING: SECURITY COMPLIANCE ALERT ⚠
+            </AlertDialogTitle>
+            <AlertDialogDescription className="pt-4">
+              <div className="border-2 border-red-700 bg-yellow-100 p-4 mb-4">
+                <p className="text-sm font-mono font-bold text-red-700">
+                  FAILURE TO COMPLETE ANNUAL TRAINING MAY RESULT IN:
+                </p>
+                <ul className="list-disc pl-6 pt-2 space-y-1 text-sm font-mono text-red-700">
+                  <li>IMMEDIATE SYSTEM ACCESS REVOCATION</li>
+                  <li>SECURITY CLEARANCE REVIEW</li>
+                  <li>SUPERVISOR NOTIFICATION</li>
+                </ul>
+              </div>
+              <div className="font-mono text-sm">
+                DO YOU WISH TO PROCEED WITH POSTPONEMENT?
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 space-x-2">
+            <AlertDialogCancel 
+              className="bg-gray-200 px-4 py-2 font-['Courier_New'] text-sm
+                         border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                         hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                         hover:translate-x-[1px] hover:translate-y-[1px]"
+            >
+              【 RETURN TO TRAINING 】
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmPostpone}
+              className="bg-red-700 text-white px-4 py-2 font-['Courier_New'] text-sm
+                         border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                         hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                         hover:translate-x-[1px] hover:translate-y-[1px]"
+            >
+              【 CONFIRM POSTPONEMENT 】
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
       {/* Top Banner */}
       <div className="bg-blue-900 text-white text-xs py-1 text-center font-mono border-b-2 border-red-700">
         OFFICIAL USE ONLY • SYSTEM ACCESS MONITORED • LAST UPDATED: 03/15/2024
