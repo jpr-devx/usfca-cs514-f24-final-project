@@ -90,16 +90,25 @@ const GovAssistantPortal = () => {
     setShowAlert(false);
   };
 
+  const handleSectionChange = (section) => {
+    setSelectedChat(null);
+    setActiveSection(section);
+  };
+
   // Initialize user session
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
+
     if (storedUserId) {
       setUserId(storedUserId);
       setIsAuthenticated(true);
       setActiveSection('assistants');
+    }
+
+    if (activeSection === 'assistants' || storedUserId) {
       fetchAssistants();
     }
-  }, []);
+  }, [activeSection]);
 
   // API Functions
   const initializeUser = async () => {
@@ -276,9 +285,9 @@ const GovAssistantPortal = () => {
   };
 
   // Assistant List Component
-  const AssistantList = () => {
+  const AssistantList = ({ onSectionChange }) => {
     useEffect(() => {
-      fetchAssistants();
+      // fetchAssistants();
     }, []);
 
     const handleAssistantClick = async (assistantId) => {
@@ -288,6 +297,16 @@ const GovAssistantPortal = () => {
 
     return (
       <div className='space-y-2'>
+        {/* Create New Assistant Button */}
+        <div className='border-2 border-gray-400 bg-[#f0f0f0]'>
+          <button
+            onClick={() => handleSectionChange('create')}
+            className='w-full p-2 text-left font-mono text-sm bg-green-700 text-white hover:bg-green-800 flex items-center'>
+            <Plus className='h-4 w-4 mr-2' /> REQUEST NEW AGENT
+          </button>
+        </div>
+
+        {/* Existing Assistants List */}
         {assistants.map((assistant) => (
           <div
             key={assistant.id}
@@ -343,12 +362,14 @@ const GovAssistantPortal = () => {
               </p>
             </div>
           </AlertDescription>
-          <AlertFooter onComplete={handleComplete} onPostpone={handlePostpone}>
-            {/* The buttons are now handled by the AlertFooter component */}
-          </AlertFooter>
+          <AlertFooter
+            onComplete={handleComplete}
+            onPostpone={handlePostpone}
+          />
         </Alert>
       )}
 
+      {/* Security Alert Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogPortal>
           <AlertDialogOverlay className='fixed inset-0 z-50 bg-black/80 backdrop-blur-sm' />
@@ -356,7 +377,6 @@ const GovAssistantPortal = () => {
             className='fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] 
                     w-full max-w-lg border-4 border-black bg-[#fffff0]
                     shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)]'>
-            {/* Top Warning Banner */}
             <div className='bg-red-700 text-white px-4 py-2 border-b-4 border-black flex items-center justify-between'>
               <BlinkingText speed={800}>⚠ SECURITY ALERT ⚠</BlinkingText>
               <div className='text-xs'>
@@ -364,11 +384,8 @@ const GovAssistantPortal = () => {
               </div>
             </div>
 
-            {/* Main Content */}
             <div className='relative p-6'>
               <WarningPattern />
-
-              {/* Title */}
               <div className='text-center mb-6'>
                 <div className='font-bold text-xl mb-1'>
                   !! POSTPONEMENT REQUEST !!
@@ -380,27 +397,6 @@ const GovAssistantPortal = () => {
                 </div>
               </div>
 
-              {/* Warning Box */}
-              <div className='border-2 border-red-700 bg-red-100 p-4 mb-6 font-mono'>
-                <div className='flex items-start space-x-2'>
-                  <div className='text-red-700 text-2xl'>▲</div>
-                  <div>
-                    <div className='font-bold text-red-700 mb-2'>
-                      SECURITY NOTICE:
-                    </div>
-                    <div className='text-sm'>
-                      Postponing mandatory security training may result in:
-                      <ul className='list-disc ml-4 mt-2 space-y-1'>
-                        <li>Restricted system access</li>
-                        <li>Mandatory security audit</li>
-                        <li>Incident report filed [FORM-1969-B]</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Box */}
               <div className='border border-gray-400 bg-gray-100 p-3 mb-6 font-mono text-sm'>
                 <div className='grid grid-cols-2 gap-2'>
                   <div>
@@ -418,39 +414,31 @@ const GovAssistantPortal = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className='flex justify-end space-x-3 pt-4 border-t-2 border-gray-400'>
                 <AlertDialogPrimitive.Cancel
                   className='bg-gray-200 px-4 py-2 font-mono text-sm
-                   border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                   hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                   hover:translate-x-[1px] hover:translate-y-[1px]'>
+                           border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                           hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                           hover:translate-x-[1px] hover:translate-y-[1px]'>
                   ◄ CANCEL REQUEST
                 </AlertDialogPrimitive.Cancel>
                 <AlertDialogPrimitive.Action
                   onClick={handleConfirmPostpone}
                   className='bg-red-700 text-white px-4 py-2 font-mono text-sm
-                   border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                   hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                   hover:translate-x-[1px] hover:translate-y-[1px]
-                   relative overflow-hidden'>
+                           border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                           hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                           hover:translate-x-[1px] hover:translate-y-[1px]
+                           relative overflow-hidden'>
                   <BlinkingText speed={400}>
                     !! CONFIRM OVERRIDE !!
                   </BlinkingText>
                 </AlertDialogPrimitive.Action>
               </div>
             </div>
-
-            {/* Bottom Banner */}
-            <div className='bg-gray-200 border-t-4 border-black px-4 py-2 font-mono text-xs text-center'>
-              <BlinkingText speed={1000}>
-                UNAUTHORIZED ACCESS OR POSTPONEMENT MAY RESULT IN DISCIPLINARY
-                ACTION
-              </BlinkingText>
-            </div>
           </AlertDialogPrimitive.Content>
         </AlertDialogPortal>
       </AlertDialog>
+
       {/* Top Banner */}
       <div className='bg-blue-900 text-white text-xs py-1 text-center font-mono border-b-2 border-red-700'>
         OFFICIAL USE ONLY • SYSTEM ACCESS MONITORED • LAST UPDATED: 03/15/1984
@@ -577,7 +565,6 @@ const GovAssistantPortal = () => {
                   {[
                     { id: 'assistants', label: 'AVAILABLE AGENTS', icon: User },
                     { id: 'create', label: 'REQUEST NEW AGENT', icon: Plus },
-                    // { id: 'documents', label: 'FILE REPOSITORY', icon: FileText },
                     {
                       id: 'messages',
                       label: 'COMMUNICATIONS',
@@ -586,7 +573,7 @@ const GovAssistantPortal = () => {
                   ].map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => setActiveSection(item.id)}
+                      onClick={() => handleSectionChange(item.id)}
                       className={`w-full text-left p-2 text-sm font-['Courier_New'] flex items-center space-x-2
                               border-2 hover:bg-yellow-100 ${
                                 activeSection === item.id
@@ -602,8 +589,8 @@ const GovAssistantPortal = () => {
                 <div className='mt-4 border border-gray-400 bg-white p-2'>
                   <div className='text-xs font-mono'>
                     <div className='text-orange-700'>█ SYSTEM STRUGGLING</div>
-                    <div>► CPU: 97% UTILIZED</div>
-                    <div>► MEM: 1,012KB FREE</div>
+                    <div>► CPU: 99.97% UTILIZED</div>
+                    <div>► MEM: 0.00102KB FREE</div>
                   </div>
                 </div>
               </div>
@@ -632,6 +619,11 @@ const GovAssistantPortal = () => {
                     </div>
                   )}
 
+                  {/* Conditional Rendering Based on Active Section */}
+                  {activeSection === 'assistants' && (
+                    <AssistantList onSectionChange={handleSectionChange} />
+                  )}
+
                   {activeSection === 'create' && (
                     <div className='space-y-4'>
                       <div className='bg-yellow-100 border-2 border-yellow-700 p-2 text-sm font-mono'>
@@ -651,7 +643,6 @@ const GovAssistantPortal = () => {
                           />
                         </label>
 
-                        {/* Updated Public/Private Toggle Section with matching background */}
                         <div className='border-2 border-gray-400 p-3 bg-[#fffff0]'>
                           <span className="font-['Courier_New'] text-sm mb-2 block">
                             ACCESS LEVEL:
@@ -660,11 +651,11 @@ const GovAssistantPortal = () => {
                             <button
                               onClick={() => setIsPublic(true)}
                               className={`flex-1 p-2 font-['Courier_New'] text-sm border-2 
-                      ${
-                        isPublic
-                          ? 'bg-green-700 text-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                          : 'bg-gray-200 border-gray-400'
-                      }`}>
+                                      ${
+                                        isPublic
+                                          ? 'bg-green-700 text-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                                          : 'bg-gray-200 border-gray-400'
+                                      }`}>
                               【 PUBLIC 】
                               <div className='text-xs mt-1'>
                                 {isPublic && '► '}GENERAL ACCESS PERMITTED
@@ -673,11 +664,11 @@ const GovAssistantPortal = () => {
                             <button
                               onClick={() => setIsPublic(false)}
                               className={`flex-1 p-2 font-['Courier_New'] text-sm border-2 
-                      ${
-                        !isPublic
-                          ? 'bg-red-700 text-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                          : 'bg-gray-200 border-gray-400'
-                      }`}>
+                                      ${
+                                        !isPublic
+                                          ? 'bg-red-700 text-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                                          : 'bg-gray-200 border-gray-400'
+                                      }`}>
                               【 PRIVATE 】
                               <div className='text-xs mt-1'>
                                 {!isPublic && '► '}RESTRICTED ACCESS ONLY
@@ -715,22 +706,25 @@ const GovAssistantPortal = () => {
                         <div className='pt-4 space-x-2'>
                           <button
                             className="bg-green-700 text-white px-4 py-2 font-['Courier_New'] text-sm
-                       border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                       hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                       hover:translate-x-[1px] hover:translate-y-[1px]">
+                                   border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                                   hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                   hover:translate-x-[1px] hover:translate-y-[1px]">
                             SUBMIT REQUEST
                           </button>
                           <button
                             className="bg-gray-200 px-4 py-2 font-['Courier_New'] text-sm
-                       border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                       hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                       hover:translate-x-[1px] hover:translate-y-[1px]">
+                                   border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                                   hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                   hover:translate-x-[1px] hover:translate-y-[1px]">
                             CLEAR FORM
                           </button>
                         </div>
                       </div>
                     </div>
                   )}
+
+                  {/* Chat Interface */}
+                  {selectedChat && <ChatInterface chatId={selectedChat} />}
                 </div>
               </div>
             </div>
