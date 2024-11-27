@@ -98,14 +98,16 @@ const GovAssistantPortal = () => {
   // Initialize user session
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
-
     if (storedUserId) {
       setUserId(storedUserId);
       setIsAuthenticated(true);
       setActiveSection('assistants');
+      fetchAssistants();
     }
+  }, []);
 
-    if (activeSection === 'assistants' || storedUserId) {
+  useEffect(() => {
+    if (activeSection === 'assistants') {
       fetchAssistants();
     }
   }, [activeSection]);
