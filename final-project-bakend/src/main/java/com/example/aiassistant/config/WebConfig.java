@@ -6,6 +6,25 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+//@Configuration
+//public class WebConfig {
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration config = new CorsConfiguration();
+//
+//        // Allow all origins - for development only
+//        config.addAllowedOrigin("http://localhost:3000");
+//
+//        // Allow all headers and methods
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+//
+//        source.registerCorsConfiguration("/api/**", config);
+//        return new CorsFilter(source);
+//    }
+//}
+
 @Configuration
 public class WebConfig {
     @Bean
@@ -13,10 +32,8 @@ public class WebConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow all origins - for development only
-        config.addAllowedOrigin("http://localhost:3002");
-
-        // Allow all headers and methods
+        // Update this to your deployed frontend URL
+        config.addAllowedOrigin("*");  // For testing. In production, set to your specific frontend URL
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 

@@ -1,108 +1,182 @@
 package com.example.aiassistant.service;
 
+import com.example.aiassistant.AssistantConversation;
 import com.example.aiassistant.dto.*;
 import com.example.aiassistant.model.*;
 import com.example.aiassistant.repository.*;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.FieldValue;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.firebase.cloud.StorageClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class AssistantService {
     private final AssistantRepository assistantRepository;
-    private final ChatRepository chatRepository;
-    private final MessageRepository messageRepository;
+    private final ChatService chatService;
+    private final MessageService messageService;
+    private final Firestore firestore;
+    private final AssistantConversation assistantConversation;
 
     public AssistantService(
             AssistantRepository assistantRepository,
-            ChatRepository chatRepository,
-            MessageRepository messageRepository) {
+            ChatService chatService,
+            MessageService messageService,
+            Firestore firestore) {
         this.assistantRepository = assistantRepository;
-        this.chatRepository = chatRepository;
-        this.messageRepository = messageRepository;
+        this.chatService = chatService;
+        this.messageService = messageService;
+        this.firestore = firestore;
+        this.assistantConversation = new AssistantConversation();
     }
 
+    public AssistantDTO createAssistant(MultipartFile file, String callsign,
+                                        String parameters, boolean isPublic,
+                                        String userId) {
+        try {
+            // Handle OpenAI integration
+            Path tempFile = Files.createTempFile("upload_", "_" + file.getOriginalFilename());
+            file.transferTo(tempFile.toFile());
+
+            // Create OpenAI assistant and upload file
+            assistantConversation.createAssistantForFileUpload();
+            String openAiFileId = assistantConversation.uploadFile(tempFile.toString());
+
+            if (openAiFileId == null) {
+                throw new RuntimeException("Failed to upload file to OpenAI");
+            }
+
+            // Get OpenAI file info
+            AssistantConversation.FileResponse fileInfo =
+                    assistantConversation.getFileInfo(openAiFileId);
+
+            // Attach file to OpenAI assistant
+            boolean attached = assistantConversation.attachFileToAssistant(openAiFileId);
+
+            if (!attached) {
+                throw new RuntimeException("Failed to attach file to OpenAI assistant");
+            }
+
+            // Create Firestore document
+            DocumentReference docRef = firestore.collection("agents").document();
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", docRef.getId());
+            data.put("name", callsign);
+            data.put("parameters", parameters);
+            data.put("isPublic", isPublic);
+            data.put("userId", userId);
+            data.put("openAiFileId", openAiFileId);
+            data.put("openAiAssistantId", assistantConversation.assistantId);
+            data.put("fileInfo", Map.of(
+                    "name", file.getOriginalFilename(),
+                    "size", fileInfo.getBytes(),
+                    "status", fileInfo.getStatus()
+            ));
+            data.put("createdAt", FieldValue.serverTimestamp());
+
+            // Save to Firestore
+            docRef.set(data);
+
+            // Add to user's agents collection
+            firestore.collection("users")
+                    .document(userId)
+                    .collection("userAgents")
+                    .document(docRef.getId())
+                    .set(data);
+
+            // Clean up temp file
+            Files.deleteIfExists(tempFile);
+
+            // Create and save to JPA repository if needed
+            Assistant assistant = new Assistant();
+            assistant.setId(docRef.getId());
+            assistant.setName(callsign);
+            assistant.setDescription(parameters);
+            assistantRepository.save(assistant);
+
+            // Convert and return DTO
+            AssistantDTO dto = new AssistantDTO();
+            dto.setId(docRef.getId());
+            dto.setName(callsign);
+            dto.setParameters(parameters);
+            dto.setPublic(isPublic);
+            dto.setUserId(userId);
+
+            return dto;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create assistant: " + e.getMessage(), e);
+        }
+    }
+
+    // Existing methods remain the same
     public UserSessionDTO createUserSession() {
         UserSessionDTO session = new UserSessionDTO();
         session.setUserId(UUID.randomUUID().toString());
         return session;
     }
 
-    public List<AssistantDTO> getAllAssistants() {
-        return assistantRepository.findAll().stream()
-                .map(this::convertToAssistantDTO)
-                .collect(Collectors.toList());
-    }
+    public List<AssistantDTO> getAllAssistants(String userId) {
+        try {
+            List<AssistantDTO> assistants = new ArrayList<>();
+            var assistantDocs = firestore.collection("agents").get().get();
 
-    public AssistantDTO createAssistant(AssistantDTO request) {
-        Assistant assistant = new Assistant();
-        assistant.setName(request.getName());
-        assistant.setDescription(request.getDescription());
-        return convertToAssistantDTO(assistantRepository.save(assistant));
+            for (var doc : assistantDocs.getDocuments()) {
+                // Filter private assistants - only show if public or owned by user
+                boolean isPublic = doc.getBoolean("isPublic");
+                String creatorId = doc.getString("userId");
+
+                if (isPublic || (creatorId != null && creatorId.equals(userId))) {
+                    AssistantDTO assistant = new AssistantDTO();
+                    assistant.setId(doc.getId());
+                    assistant.setName(doc.getString("name"));
+                    assistant.setParameters(doc.getString("parameters"));
+                    assistant.setPublic(isPublic);
+                    assistant.setUserId(creatorId);
+                    assistants.add(assistant);
+                }
+            }
+            return assistants;
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching assistants: " + e.getMessage());
+        }
     }
 
     public List<ChatDTO> getChats(String assistantId, String userId) {
-        return chatRepository.findByAssistantIdAndUserId(assistantId, userId).stream()
-                .map(this::convertToChatDTO)
-                .collect(Collectors.toList());
+        return chatService.getChatHistory(assistantId, userId);
     }
 
     public ChatDTO createChat(String assistantId, String userId) {
-        Assistant assistant = assistantRepository.findById(assistantId)
-                .orElseThrow(() -> new RuntimeException("Assistant not found"));
-
-        Chat chat = new Chat();
-        chat.setAssistant(assistant);
-        chat.setUserId(userId);
-        return convertToChatDTO(chatRepository.save(chat));
-    }
-
-    public List<MessageDTO> getMessages(String chatId, String userId) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("Chat not found"));
-
-        if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        return messageRepository.findByChatIdOrderByTimestampAsc(chatId).stream()
-                .map(this::convertToMessageDTO)
-                .collect(Collectors.toList());
-    }
-
-    public MessageDTO addMessage(String chatId, String userId, MessageDTO messageDTO) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("Chat not found"));
-
-        if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        Message message = new Message();
-        message.setChat(chat);
-        message.setContent(messageDTO.getContent());
-        message.setSender("user");
-
-        return convertToMessageDTO(messageRepository.save(message));
-    }
-
-    private AssistantDTO convertToAssistantDTO(Assistant assistant) {
-        AssistantDTO dto = new AssistantDTO();
-        dto.setId(assistant.getId());
-        dto.setName(assistant.getName());
-        dto.setDescription(assistant.getDescription());
-        dto.setCreatedAt(assistant.getCreatedAt());
-        return dto;
+        return chatService.createChat(assistantId, userId);
     }
 
     private ChatDTO convertToChatDTO(Chat chat) {
         ChatDTO dto = new ChatDTO();
         dto.setId(chat.getId());
         dto.setAssistantId(chat.getAssistant().getId());
+        dto.setUserId(chat.getUserId());
         dto.setCreatedAt(chat.getCreatedAt());
+        return dto;
+    }
+
+    // Existing helper methods remain the same
+    private AssistantDTO convertToAssistantDTO(Assistant assistant) {
+        AssistantDTO dto = new AssistantDTO();
+        dto.setId(assistant.getId());
+        dto.setName(assistant.getName());
+        dto.setDescription(assistant.getDescription());
+        dto.setCreatedAt(assistant.getCreatedAt());
         return dto;
     }
 
