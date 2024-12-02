@@ -104,6 +104,7 @@ public class AssistantService {
             assistant.setId(docRef.getId());
             assistant.setName(callsign);
             assistant.setDescription(parameters);
+            assistant.setPublic(isPublic);
             assistantRepository.save(assistant);
 
             // Convert and return DTO
@@ -133,7 +134,6 @@ public class AssistantService {
             var assistantDocs = firestore.collection("agents").get().get();
 
             for (var doc : assistantDocs.getDocuments()) {
-                // Filter private assistants - only show if public or owned by user
                 boolean isPublic = doc.getBoolean("isPublic");
                 String creatorId = doc.getString("userId");
 
@@ -142,7 +142,7 @@ public class AssistantService {
                     assistant.setId(doc.getId());
                     assistant.setName(doc.getString("name"));
                     assistant.setParameters(doc.getString("parameters"));
-                    assistant.setPublic(isPublic);
+                    assistant.setPublic(isPublic);  // Make sure this is set
                     assistant.setUserId(creatorId);
                     assistants.add(assistant);
                 }
@@ -177,6 +177,7 @@ public class AssistantService {
         dto.setName(assistant.getName());
         dto.setDescription(assistant.getDescription());
         dto.setCreatedAt(assistant.getCreatedAt());
+        dto.setPublic(assistant.isPublic());
         return dto;
     }
 
