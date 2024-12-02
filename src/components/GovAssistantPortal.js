@@ -190,12 +190,13 @@ const GovAssistantPortal = () => {
       setUserId(storedUserId);
       setIsAuthenticated(true);
       setActiveSection('assistants');
-      fetchAssistants();
     }
   }, []);
 
   // API Functions
   const fetchAssistants = async () => {
+    if (!userId) return; // Don't fetch if no userId
+
     try {
       setLoading(true);
       const token = await getCurrentUserToken();
@@ -219,6 +220,31 @@ const GovAssistantPortal = () => {
       setLoading(false);
     }
   };
+  // const fetchAssistants = async () => {
+  //   if (activeSection !== 'assistants') return;
+  //   try {
+  //     setLoading(true);
+  //     const token = await getCurrentUserToken();
+  //     const response = await fetch(`${API_BASE_URL}/api/assistants`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         'User-Id': userId,
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     setAssistants(data);
+  //   } catch (error) {
+  //     setError('Failed to fetch assistants: ' + error.message);
+  //     console.error('Fetch assistants error:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const createNewChat = async (assistantId) => {
     try {
@@ -248,7 +274,12 @@ const GovAssistantPortal = () => {
     }
   };
 
-  // Add authentication check on component mount
+  useEffect(() => {
+    if (userId && isAuthenticated) {
+      fetchAssistants();
+    }
+  }, [userId, isAuthenticated]);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setCheckingAuth(false);
@@ -256,7 +287,6 @@ const GovAssistantPortal = () => {
         setIsAuthenticated(true);
         setUserId(user.uid);
         setActiveSection('assistants');
-        fetchAssistants(); // Only fetch here
       } else {
         setIsAuthenticated(false);
         setUserId(null);
@@ -605,11 +635,11 @@ const GovAssistantPortal = () => {
                           <span className='font-bold'>{assistant.name}</span>
                           <span
                             className={`text-xs px-1.5 py-0.5 rounded-sm ${
-                              assistant.isPublic
+                              assistant.public
                                 ? 'bg-green-700 text-white'
                                 : 'bg-red-700 text-white'
                             }`}>
-                            {assistant.isPublic ? 'PUBLIC' : 'RESTRICTED'}
+                            {assistant.public ? 'PUBLIC' : 'RESTRICTED'}
                           </span>
                         </div>
                         <div className='mt-1 text-xs text-gray-200 leading-tight'>
@@ -728,6 +758,9 @@ const GovAssistantPortal = () => {
   // Assistant List Component
   const AssistantList = ({ onSectionChange, setSelectedAgent }) => {
     const handleStartCommunication = async (assistant) => {
+      console.log('Full assistant object:', JSON.stringify(assistant, null, 2));
+      console.log('isPublic type:', typeof assistant.isPublic);
+      console.log('isPublic value:', assistant.isPublic);
       setSelectedAgent(assistant);
       onSectionChange('messages');
     };
@@ -756,11 +789,11 @@ const GovAssistantPortal = () => {
                     <span className='font-bold'>{assistant.name}</span>
                     <span
                       className={`text-xs px-1.5 py-0.5 rounded-sm ${
-                        assistant.isPublic
+                        assistant.public
                           ? 'bg-green-700 text-white'
                           : 'bg-red-700 text-white'
                       }`}>
-                      {assistant.isPublic ? 'PUBLIC' : 'RESTRICTED'}
+                      {assistant.public ? 'PUBLIC' : 'RESTRICTED'}
                     </span>
                   </div>
                   <div className='mt-1 text-xs text-gray-200 leading-tight'>
