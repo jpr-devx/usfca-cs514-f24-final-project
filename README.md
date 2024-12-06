@@ -32,4 +32,10 @@ Fullstack web application for CS514's final project (taught by Dr. David Wolber 
   Firebase will be used to authenticate users signing in to the app. Google Sign-in will be used as the authentication method, eliminating the need for manual account creation and ensuring an efficient and secure sign-in and authentication process
   The application will be deployed using Google Cloud’s App Engine, allowing users to access the web application through their web browser. This project will democratize access to AI-powered tools by simplifying the creation and use of OpenAI assistants, empowering non-technical users to harness AI effectively.
 </p>
-
+<p>
+  <strong>Individual Contributions</strong>: <br>
+  John -
+  Josh -
+  Alex -
+  Tom -
+</p>
