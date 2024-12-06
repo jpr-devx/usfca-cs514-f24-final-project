@@ -35,7 +35,7 @@ Fullstack web application for CS514's final project (taught by Dr. David Wolber 
 <hr>
 <p>
   <strong>Individual Contributions</strong>: <br>
-  John - <br>
+  John - Developed foundation of server-side Java OpenAI API calls for OpenAI assistant creation, modification and access, message creation and thread execution for obtaining assistant responses for conversation with document context. <br>
   Josh - <br>
   Alex - Coded the React components with Tailwind CSS for other developers to use. Helped Josh with some backend Java Spring logics. <br>
   Tom - Developed the frontend UI with a fun 1990s/2000s vibe to make users feel like they’ve stepped back into the early days of the internet. Added retro-style buttons, chat features, and alerts that all work smoothly with the backend functions and components. Also set up user authentication so everything runs securely and ties together nicely.. <br>
