@@ -37,6 +37,6 @@ Fullstack web application for CS514's final project (taught by Dr. David Wolber 
   <strong>Individual Contributions</strong>: <br>
   John - <br>
   Josh - <br>
-  Alex - <br>
+  Alex - Coded the React components with Tailwind CSS for other developers to use. Helped Josh with some backend Java Spring logics. <br>
   Tom - Developed the frontend UI with a fun 1990s/2000s vibe to make users feel like they’ve stepped back into the early days of the internet. Added retro-style buttons, chat features, and alerts that all work smoothly with the backend functions and components. Also set up user authentication so everything runs securely and ties together nicely.. <br>
 </p>
