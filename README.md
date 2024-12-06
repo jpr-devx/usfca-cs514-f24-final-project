@@ -38,5 +38,5 @@ Fullstack web application for CS514's final project (taught by Dr. David Wolber 
   John - <br>
   Josh - <br>
   Alex - <br>
-  Tom - Developed the frontend UI with a nostalgic 1990s/2000s theme, designed to immerse users in the aesthetics of the early internet era. This included crafting vintage-style buttons, chat interfaces, and alert systems, all seamlessly integrated with backend functionality and components. Additionally, implemented user authentication mechanisms to ensure secure access, creating a cohesive and interactive experience that bridges frontend design with backend operations. <br>
+  Tom - Developed the frontend UI with a fun 1990s/2000s vibe to make users feel like they’ve stepped back into the early days of the internet. Added retro-style buttons, chat features, and alerts that all work smoothly with the backend functions and components. Also set up user authentication so everything runs securely and ties together nicely.. <br>
 </p>
