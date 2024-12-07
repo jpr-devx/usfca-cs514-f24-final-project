@@ -34,6 +34,11 @@ Fullstack web application for CS514's final project (taught by Dr. David Wolber 
 </p>
 <hr>
 <p>
+    <strong>How to run/deploy</strong>: <br>
+    To deploy the project, clone the github project and start the frontend with npm start and the backend with running the AIAssistantApplication.java file. A valid OpenAI API key must be added as an environment variable prior to running the backend. Contained in the backend branch is a Docker file that can also be used to create a container that can be run as well. For the frontend, a valid firebase project with a cloud firestore must be active and its config be placed in a firebase.js config file in the frontend project for the front end to successfully run. The API url must be changed to match your own url as well. 
+</p>
+<hr>
+<p>
   <strong>Individual Contributions</strong>: <br>
   John - Developed foundation of server-side Java OpenAI API calls for OpenAI assistant creation, modification and access, message creation and thread execution for obtaining assistant responses for conversation with document context. <br>
   Josh - Worked on developing the service and controller components for our backend. Worked with Postman to test and debug service and controller difficulties.<br>
